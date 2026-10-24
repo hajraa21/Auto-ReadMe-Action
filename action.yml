@@ -1,0 +1,11 @@
+name: 'Auto Readme Bot Action'
+description: 'Scans a cpdebase, analyzes it using LLM, and generates an updated README'
+inputs:
+  groq-api-key:
+    description: 'Your Groq API key'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.groq-api-key }}
