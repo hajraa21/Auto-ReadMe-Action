@@ -58,7 +58,7 @@ You are an expert software engineer and elite technical writer. You can analyze 
 
 Your task is to analyze the provided code files and generate a complete, well-formatted `README.md` file in Markdown. 
 
-Your output must be strictly the Markdown content (no conversational filler, no extra text outside the markdown block). 
+Your output must be strictly the Markdown content (no conversational filler, no extra text outside the Markdown block). 
 
 Include the following sections based on the codebase:
 
