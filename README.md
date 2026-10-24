@@ -5,20 +5,20 @@
 [![License](https://img.shields.io/github/license/hajraa21/auto-readme-action)](LICENSE)  
 [![Docker Image Size](https://img.shields.io/docker/image-size/hajraa21/auto-readme-action/latest)](https://hub.docker.com/r/hajraa21/auto-readme-action)  
 
----
+---  
 
 ## Description  
 
 `auto-readme-action` is a **GitHub Action** that scans the source code of the repository it runs in, sends the collected files to a Groq LLM (GPT‑OSS‑120B), and writes a freshly generated `README.md`.  
-It removes the tedious, manual effort of keeping documentation up‑to‑date and guarantees a consistent, high‑quality format every time code changes are pushed.
+It eliminates the manual effort of keeping documentation up‑to‑date and guarantees a consistent, high‑quality format every time code changes are pushed.
 
 ### Why it exists  
 
-* Documentation often lags behind code changes.  
-* Writing a comprehensive README is time‑consuming and error‑prone.  
-* Leveraging a powerful LLM lets you produce human‑readable, structured docs automatically.
+- Documentation often lags behind code changes.  
+- Writing a comprehensive README is time‑consuming and error‑prone.  
+- Leveraging a powerful LLM lets you produce human‑readable, structured docs automatically.  
 
----
+---  
 
 ## Table of Contents  
 
@@ -29,6 +29,7 @@ It removes the tedious, manual effort of keeping documentation up‑to‑date an
   - [1️⃣ Add the workflow file](#1️⃣-add-the-workflow-file)  
   - [2️⃣ Configure secrets](#2️⃣-configure-secrets)  
   - [3️⃣ Run the workflow](#3️⃣-run-the-workflow)  
+  - [Run locally (Docker)](#run-locally-docker)  
 - [Environment Variables](#environment-variables)  
 - [API Reference](#api-reference)  
 - [Roadmap](#roadmap)  
@@ -37,21 +38,22 @@ It removes the tedious, manual effort of keeping documentation up‑to‑date an
 - [License](#license)  
 - [Authors & Acknowledgements](#authors--acknowledgements)  
 
----
+---  
 
 ## Tech Stack / Built With  
 
 | Category | Tool / Library |
 |----------|----------------|
-| Language | Python ≥ 3.13 |
-| LLM Provider | **Groq** (`groq` Python SDK) |
-| Model | `openai/gpt-oss-120b` |
-| Containerisation | Docker (used by the Action) |
-| CI / Automation | GitHub Actions |
-| Dependency Management | `pyproject.toml` (PEP 621) |
-| Misc | `python-dotenv`, `requests` |
+| **Language** | Python ≥ 3.13 |
+| **LLM Provider** | Groq (`groq` Python SDK) |
+| **Model** | `openai/gpt-oss-120b` |
+| **Containerisation** | Docker (used by the Action) |
+| **CI / Automation** | GitHub Actions |
+| **Dependency Management** | `pyproject.toml` (PEP 621) |
+| **Utilities** | `python-dotenv`, `requests` |
+| **GitHub Action Helper** | `peter-evans/create-pull-request` (for PR creation) |
 
----
+---  
 
 ## Features  
 
@@ -62,7 +64,7 @@ It removes the tedious, manual effort of keeping documentation up‑to‑date an
 - **Automatic PR creation** – integrates with `peter-evans/create-pull-request` to open a PR with the updated README.  
 - **Configurable via secrets** – Groq API key is supplied securely through GitHub Secrets.  
 
----
+---  
 
 ## Prerequisites & Installation  
 
@@ -72,13 +74,13 @@ It removes the tedious, manual effort of keeping documentation up‑to‑date an
 
 No additional local installation is needed; the Action is consumed via a workflow file.
 
----
+---  
 
 ## Usage  
 
 ### 1️⃣ Add the workflow file  
 
-Create `.github/workflows/generate_readme.yml` in your repository with the following content (the file is also provided in `template.md`):
+Create `.github/workflows/generate_readme.yml` in your repository with the following content:
 
 ```yaml
 name: Auto-Generate README
@@ -137,7 +139,22 @@ Push a commit to `main` (or `master`). The workflow will:
 
 Merge the PR once you verify the content.
 
----
+### Run locally (Docker)  
+
+```bash
+# Build the Docker image
+docker build -t auto-readme-action .
+
+# Run the container (replace $GROQ_API_KEY with your key)
+docker run --rm \
+  -e GROQ_API_KEY=$GROQ_API_KEY \
+  -v "$(pwd)":/workspace \
+  auto-readme-action
+```
+
+The command will generate/overwrite `README.md` in the current directory.
+
+---  
 
 ## Environment Variables  
 
@@ -146,13 +163,15 @@ Merge the PR once you verify the content.
 | `GROQ_API_KEY` | Groq API key used by the Action to call the LLM. | ✅ (via secret) |
 | `GITHUB_WORKSPACE` | Set automatically by GitHub Actions; points to the checked‑out repository. | ✅ (provided by runner) |
 
----
+---  
 
 ## API Reference  
 
-The Action itself does **not** expose a public HTTP API. Internally it uses the Groq Python SDK:
+The Action does **not** expose a public HTTP API. Internally it uses the Groq Python SDK:
 
 ```python
+from groq import Groq
+
 client = Groq(api_key=api_key)
 response = client.chat.completions.create(
     model="openai/gpt-oss-120b",
@@ -162,21 +181,23 @@ response = client.chat.completions.create(
     ],
     temperature=0.3,
 )
+
+readme_content = response.choices[0].message.content
 ```
 
-The response’s `choices[0].message.content` is written to `README.md`.
+The `readme_content` is written to `README.md` in the repository root.
 
----
+---  
 
 ## Roadmap  
 
 - **Support for additional LLM providers** (OpenAI, Anthropic, etc.).  
 - **Configurable ignore patterns** via action inputs.  
 - **Incremental updates** – only regenerate sections that changed.  
-- **Customizable output template** (e.g., choose which sections to include).  
+- **Customizable output template** (choose which sections to include).  
 - **CLI wrapper** for local, non‑GitHub usage.  
 
----
+---  
 
 ## Contributing  
 
@@ -190,7 +211,7 @@ Contributions are welcome! Please follow these steps:
 
 Please adhere to the existing coding style and include documentation updates where appropriate.
 
----
+---  
 
 ## Support / FAQ  
 
@@ -201,23 +222,20 @@ A: Ensure the secret `GROQ_API_KEY` is defined in the repository settings and th
 A: The LLM output depends on the prompt and the scanned code. Make sure the repository contains source files with supported extensions and that the `SYSTEM_PROMPT` in `main.py` matches the sections you need.
 
 **Q: Can I run the Action locally?**  
-A: Yes. Build the Docker image (`docker build -t auto-readme-action .`) and execute:  
-```bash
-docker run --rm -e GROQ_API_KEY=$GROQ_API_KEY -v "$(pwd)":/workspace auto-readme-action
-```  
+A: Yes. Build the Docker image (`docker build -t auto-readme-action .`) and execute it as shown in the **Run locally (Docker)** section.
 
 **Q: Does this action modify any files other than `README.md`?**  
 A: No. It only writes/overwrites `README.md` at the repository root.
 
 For further assistance, open an issue or contact the maintainer.
 
----
+---  
 
 ## License  
 
 This project is licensed under the **MIT License** – see the `LICENSE` file for details.
 
----
+---  
 
 ## Authors & Acknowledgements  
 
