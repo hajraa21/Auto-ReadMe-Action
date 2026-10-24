@@ -1,0 +1,36 @@
+name: Auto-Generate README
+
+on:
+  push:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Auto-Readme Action
+        uses: hajraa21/auto-readme-action@main
+        with:
+          groq-api-key: ${{ secrets.GROQ_API_KEY }}
+
+      - name: Create Pull Request for README Update
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: auto-generate updated README.md via Groq LLM"
+          branch: docs/auto-update-readme
+          title: "🤖 Automated README Update"
+          body: |
+            This automated pull request updates the `README.md` based on recent codebase changes. 
+            Please review the diff to ensure accuracy before merging!
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          signoff: false
+          delete-branch: true
+          add-paths: README.md
